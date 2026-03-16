@@ -4,6 +4,7 @@ import OverviewPage from "./pages/OverviewPage";
 import BookingsPage from "./pages/BookingsPage";
 import ProductsPage from "./pages/ProductsPage";
 import SubscribersPage from "./pages/SubscribersPage";
+import UsersPage from "./pages/UsersPage";
 
 const NAV_ITEMS = [
   { key: "overview",     label: "Dashboard",   icon: "🏠" },
@@ -13,6 +14,7 @@ const NAV_ITEMS = [
   { key: "package",      label: "Packages",    icon: "📦" },
   { key: "vehicle",      label: "Vehicles",    icon: "🚗" },
   { key: "subscribers",  label: "Subscribers", icon: "📧" },
+  { key: "users",        label: "Team",        icon: "👥" },
 ];
 
 export default function Dashboard({ token, onLogout }) {
@@ -130,6 +132,10 @@ export default function Dashboard({ token, onLogout }) {
 
           {active === "subscribers" && (
             <SubscribersPage subscribers={subscribers} />
+          )}
+
+          {active === "users" && (
+            <UsersPage token={token} />
           )}
         </main>
       </div>

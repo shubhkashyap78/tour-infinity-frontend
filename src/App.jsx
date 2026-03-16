@@ -1,8 +1,13 @@
 import { useState } from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
 import Dashboard from "./Dashboard";
 import { apiFetch } from "./api";
+import WebsiteLayout from "./website/WebsiteLayout";
+import HomePage from "./website/HomePage";
+import ProductDetailPage from "./website/ProductDetailPage";
+import CartPage from "./website/CartPage";
 
-export default function App() {
+function AdminApp() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [token, setToken] = useState(() => localStorage.getItem("token") || "");
@@ -42,7 +47,6 @@ export default function App() {
           Secure access for your team to manage hotels, tours, packages, and vehicle inventory.
         </p>
       </div>
-
       <form className="card" onSubmit={onLogin}>
         <h1>Admin Login</h1>
         <label>
@@ -55,8 +59,26 @@ export default function App() {
         </label>
         {error ? <div className="error">{error}</div> : null}
         <button type="submit">Sign In</button>
-        <div className="foot">Need admin seed? Use /api/auth/seed-admin once.</div>
       </form>
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <Routes>
+      {/* Public website */}
+      <Route path="/" element={<WebsiteLayout />}>
+        <Route index element={<HomePage />} />
+        <Route path="product/:id" element={<ProductDetailPage />} />
+        <Route path="cart" element={<CartPage />} />
+      </Route>
+
+      {/* Admin */}
+      <Route path="/admin/*" element={<AdminApp />} />
+
+      {/* Fallback */}
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   );
 }
