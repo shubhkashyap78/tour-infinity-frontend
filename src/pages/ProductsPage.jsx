@@ -71,7 +71,7 @@ export default function ProductsPage({ token, type }) {
         inventory: { quantity: Number(form.inventory.quantity), stopSales: form.inventory.stopSales },
         markets: form.markets.map((m) => ({ ...m, price: Number(m.price) })),
       };
-      const res = await fetch(editing ? `/api/products/${editing}` : "/api/products", {
+      const res = await apiFetch(editing ? `/api/products/${editing}` : "/api/products", {
         method: editing ? "PUT" : "POST", headers, body: JSON.stringify(payload),
       });
       const data = await res.json();
