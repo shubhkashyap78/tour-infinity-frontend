@@ -18,23 +18,23 @@ export default function UsersPage({ token }) {
   const [success, setSuccess] = useState("");
   const [form, setForm] = useState({ name: "", email: "", password: "", role: "staff" });
 
-  const headers = { Authorization: `Bearer ${token}` };
-
   const load = async () => {
     setLoading(true);
-    const res = await apiFetch("/api/auth/users", { headers });
+    const res = await apiFetch("/api/auth/users", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
     if (res.ok) setUsers(await res.json());
     setLoading(false);
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); }, [token]);
 
   const handleCreate = async () => {
     setSaving(true); setError(""); setSuccess("");
     try {
       const res = await apiFetch("/api/auth/users", {
         method: "POST",
-        headers,
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
         body: JSON.stringify(form),
       });
       const data = await res.json();

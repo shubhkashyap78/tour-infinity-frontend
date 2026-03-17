@@ -105,11 +105,17 @@ export default function CartPage() {
               </div>
             ))}
 
-            {/* Total */}
+            {/* Total — grouped by currency */}
             <div className="ws-cart-total-row">
               <span>Total</span>
               <span className="ws-cart-total-amount">
-                {items[0]?.baseCurrency} {total.toLocaleString()}
+                {Object.entries(
+                  items.reduce((acc, item) => {
+                    const cur = item.baseCurrency || "USD";
+                    acc[cur] = (acc[cur] || 0) + item.basePrice * item.guests;
+                    return acc;
+                  }, {})
+                ).map(([cur, amt]) => `${cur} ${amt.toLocaleString()}`).join(" + ")}
               </span>
             </div>
 
