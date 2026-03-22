@@ -14,6 +14,10 @@ const LOCALES = [
   { key: "hi", label: "Hindi 🇮🇳" },
 ];
 
+const TOUR_CATEGORIES = [
+  "Sea Activity", "Safari", "City Tour", "Adventure", "Cultural", "Wildlife", "Water Sports", "Hiking", "Other",
+];
+
 const TYPE_ICONS = { hotel: "🏨", tour: "🗺️", package: "📦", vehicle: "🚗" };
 
 const blankForm = (type) => ({
@@ -23,6 +27,12 @@ const blankForm = (type) => ({
   media: [],
   markets: MARKETS.map((m) => ({ market: m.key, currency: m.currency, price: 0, offerLabel: "" })),
   localized: LOCALES.map((l) => ({ locale: l.key, title: "", description: "" })),
+  // tour-specific
+  tourCategory: "Sea Activity", duration: "", meetingPoint: "", includes: "",
+  childPricing: { enabled: false, infant: 0, child: "half" },
+  // vehicle-specific
+  vehicleModel: "", vehicleCapacity: 4, hasAC: true, luggageCapacity: 2,
+  transferPricing: { airportOneWay: 0, airportTwoWay: 0, hotelTransfer: 0, fullDay4hrs: 0, fullDay8hrs: 0 },
 });
 
 export default function ProductsPage({ token, type }) {
@@ -57,19 +67,58 @@ export default function ProductsPage({ token, type }) {
   const openEdit = (p) => {
     const markets = MARKETS.map((m) => p.markets?.find((x) => x.market === m.key) || { market: m.key, currency: m.currency, price: 0, offerLabel: "" });
     const localized = LOCALES.map((l) => p.localized?.find((x) => x.locale === l.key) || { locale: l.key, title: "", description: "" });
-    setForm({ ...p, tags: (p.tags || []).join(", "), markets, localized, inventory: p.inventory || { quantity: 0, stopSales: false } });
+    const blank = blankForm(type);
+    setForm({
+      ...blank, ...p,
+      tags: (p.tags || []).join(", "),
+      includes: (p.includes || []).join(", "),
+      markets, localized,
+      inventory: p.inventory || { quantity: 0, stopSales: false },
+      vehicleModel:     p.vehicleModel     ?? blank.vehicleModel,
+      vehicleCapacity:  p.vehicleCapacity  ?? blank.vehicleCapacity,
+      hasAC:            p.hasAC            ?? blank.hasAC,
+      luggageCapacity:  p.luggageCapacity  ?? blank.luggageCapacity,
+      transferPricing: {
+        airportOneWay: p.transferPricing?.airportOneWay ?? 0,
+        airportTwoWay: p.transferPricing?.airportTwoWay ?? 0,
+        hotelTransfer: p.transferPricing?.hotelTransfer ?? 0,
+        fullDay4hrs:   p.transferPricing?.fullDay4hrs   ?? 0,
+        fullDay8hrs:   p.transferPricing?.fullDay8hrs   ?? 0,
+      },
+    });
     setEditing(p._id); setTab("basic"); setError(""); setShowForm(true);
   };
 
   const handleSave = async () => {
     setSaving(true); setError("");
     try {
+      const fullPrice = Number(form.basePrice) || 0;
       const payload = {
         ...form,
         tags: form.tags ? form.tags.split(",").map((t) => t.trim()).filter(Boolean) : [],
-        basePrice: Number(form.basePrice),
+        includes: form.includes ? form.includes.split(",").map((t) => t.trim()).filter(Boolean) : [],
+        basePrice: fullPrice,
         inventory: { quantity: Number(form.inventory.quantity), stopSales: form.inventory.stopSales },
         markets: form.markets.map((m) => ({ ...m, price: Number(m.price) })),
+        ...(type === "tour" && {
+          childPricing: {
+            enabled: true,
+            infantPrice: 0,
+            childPrice: Math.round(fullPrice / 2),
+            adultPrice: fullPrice,
+          },
+        }),
+        ...(type === "vehicle" && {
+          vehicleCapacity: Number(form.vehicleCapacity) || 4,
+          luggageCapacity: Number(form.luggageCapacity) || 2,
+          transferPricing: {
+            airportOneWay:  Number(form.transferPricing?.airportOneWay)  || 0,
+            airportTwoWay:  Number(form.transferPricing?.airportTwoWay)  || 0,
+            hotelTransfer:  Number(form.transferPricing?.hotelTransfer)  || 0,
+            fullDay4hrs:    Number(form.transferPricing?.fullDay4hrs)    || 0,
+            fullDay8hrs:    Number(form.transferPricing?.fullDay8hrs)    || 0,
+          },
+        }),
       };
       const res = await apiFetch(editing ? `/api/products/${editing}` : "/api/products", {
         method: editing ? "PUT" : "POST", headers, body: JSON.stringify(payload),
@@ -116,7 +165,138 @@ export default function ProductsPage({ token, type }) {
     const localized = [...f.localized]; localized[i] = { ...localized[i], [field]: val }; return { ...f, localized };
   });
 
+  // Vehicle basic tab
+  const renderVehicleBasic = () => {
+    const tp = form.transferPricing || {};
+    const setTP = (key, val) => setForm((f) => ({ ...f, transferPricing: { ...f.transferPricing, [key]: val } }));
+    return (
+      <div className="form-grid">
+        <label className="form-label" style={{ gridColumn: "1/-1" }}>Vehicle Name *
+          <input className="form-input" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="e.g. Toyota Etios Sedan" />
+        </label>
+        <label className="form-label">Vehicle Model
+          <input className="form-input" value={form.vehicleModel} onChange={(e) => setForm({ ...form, vehicleModel: e.target.value })} placeholder="e.g. Toyota Etios" />
+        </label>
+        <label className="form-label">Seating Capacity
+          <input className="form-input" type="number" min={1} value={form.vehicleCapacity} onChange={(e) => setForm({ ...form, vehicleCapacity: e.target.value })} />
+        </label>
+        <label className="form-label">Luggage Bags
+          <input className="form-input" type="number" min={0} value={form.luggageCapacity} onChange={(e) => setForm({ ...form, luggageCapacity: e.target.value })} />
+        </label>
+        <label className="form-label">Base Currency
+          <select className="form-input" value={form.baseCurrency} onChange={(e) => setForm({ ...form, baseCurrency: e.target.value })}>
+            {["USD", "EUR", "GBP", "INR"].map((c) => <option key={c}>{c}</option>)}
+          </select>
+        </label>
+        <label className="form-label" style={{ gridColumn: "1/-1" }}>Description
+          <textarea className="form-input" rows={2} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Brief description..." />
+        </label>
+        <label className="form-label">Tags
+          <input className="form-input" value={form.tags} onChange={(e) => setForm({ ...form, tags: e.target.value })} placeholder="sedan, ac, luxury" />
+        </label>
+        <label className="form-label form-check" style={{ alignSelf: "flex-end", paddingBottom: 8 }}>
+          <input type="checkbox" checked={form.hasAC} onChange={(e) => setForm({ ...form, hasAC: e.target.checked })} />
+          AC Available
+        </label>
+        <div style={{ gridColumn: "1/-1", background: "#f9f4ef", borderRadius: 10, padding: 16, border: "1px solid #e8d9c8" }}>
+          <div style={{ fontWeight: 600, marginBottom: 12, fontSize: 14 }}>💰 Transfer Pricing ({form.baseCurrency})</div>
+          <div className="form-grid">
+            <label className="form-label">✈️ Airport — One Way
+              <input className="form-input" type="number" min={0} value={tp.airportOneWay || 0} onChange={(e) => setTP("airportOneWay", e.target.value)} />
+            </label>
+            <label className="form-label">✈️ Airport — Two Way
+              <input className="form-input" type="number" min={0} value={tp.airportTwoWay || 0} onChange={(e) => setTP("airportTwoWay", e.target.value)} />
+            </label>
+            <label className="form-label">🏨 Hotel Transfer
+              <input className="form-input" type="number" min={0} value={tp.hotelTransfer || 0} onChange={(e) => setTP("hotelTransfer", e.target.value)} />
+            </label>
+            <div />
+            <label className="form-label">🗺️ Full Day — 4 Hours
+              <input className="form-input" type="number" min={0} value={tp.fullDay4hrs || 0} onChange={(e) => setTP("fullDay4hrs", e.target.value)} />
+            </label>
+            <label className="form-label">🗺️ Full Day — 8 Hours
+              <input className="form-input" type="number" min={0} value={tp.fullDay8hrs || 0} onChange={(e) => setTP("fullDay8hrs", e.target.value)} />
+            </label>
+          </div>
+        </div>
+        <label className="form-label form-check" style={{ gridColumn: "1/-1" }}>
+          <input type="checkbox" checked={form.isActive} onChange={(e) => setForm({ ...form, isActive: e.target.checked })} />
+          Active (visible to customers)
+        </label>
+      </div>
+    );
+  };
+
   const label = type.charAt(0).toUpperCase() + type.slice(1);
+
+  // Tour basic tab — simplified form
+  const renderTourBasic = () => {
+    const fullPrice = Number(form.basePrice) || 0;
+    const halfPrice = Math.round(fullPrice / 2);
+    return (
+      <div className="form-grid">
+        <label className="form-label" style={{ gridColumn: "1/-1" }}>Tour Title *
+          <input className="form-input" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="e.g. Sunset Sea Kayaking" />
+        </label>
+
+        <label className="form-label">Category
+          <select className="form-input" value={form.tourCategory} onChange={(e) => setForm({ ...form, tourCategory: e.target.value })}>
+            {TOUR_CATEGORIES.map((c) => <option key={c}>{c}</option>)}
+          </select>
+        </label>
+
+        <label className="form-label">Duration
+          <input className="form-input" value={form.duration} onChange={(e) => setForm({ ...form, duration: e.target.value })} placeholder="e.g. 3 hours, Full Day" />
+        </label>
+
+        <label className="form-label" style={{ gridColumn: "1/-1" }}>Description
+          <textarea className="form-input" rows={3} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="What will guests experience?" />
+        </label>
+
+        <label className="form-label">Meeting Point
+          <input className="form-input" value={form.meetingPoint} onChange={(e) => setForm({ ...form, meetingPoint: e.target.value })} placeholder="e.g. Main Beach Jetty" />
+        </label>
+
+        <label className="form-label">Includes (comma separated)
+          <input className="form-input" value={form.includes} onChange={(e) => setForm({ ...form, includes: e.target.value })} placeholder="e.g. Equipment, Guide, Snacks" />
+        </label>
+
+        <label className="form-label">Tags
+          <input className="form-input" value={form.tags} onChange={(e) => setForm({ ...form, tags: e.target.value })} placeholder="beach, family, adventure" />
+        </label>
+
+        <label className="form-label">Base Currency
+          <select className="form-input" value={form.baseCurrency} onChange={(e) => setForm({ ...form, baseCurrency: e.target.value })}>
+            {["USD", "EUR", "GBP", "INR"].map((c) => <option key={c}>{c}</option>)}
+          </select>
+        </label>
+
+        {/* Pricing Section */}
+        <div style={{ gridColumn: "1/-1", background: "#f9f4ef", borderRadius: 10, padding: 16, border: "1px solid #e8d9c8" }}>
+          <div style={{ fontWeight: 600, marginBottom: 12, fontSize: 14 }}>💰 Pricing per Person</div>
+          <div className="form-grid">
+            <label className="form-label">Adult Price ({form.baseCurrency}) — 11+ yrs *
+              <input className="form-input" type="number" min={0} value={form.basePrice}
+                onChange={(e) => setForm({ ...form, basePrice: e.target.value })} />
+            </label>
+            <div style={{ display: "flex", flexDirection: "column", gap: 6, justifyContent: "flex-end", paddingBottom: 4 }}>
+              <div style={{ fontSize: 13, color: "#6b5b4a", background: "#fff", border: "1px solid #e8d9c8", borderRadius: 6, padding: "6px 10px" }}>
+                👶 Infant (0–5 yrs): <strong>FREE</strong>
+              </div>
+              <div style={{ fontSize: 13, color: "#6b5b4a", background: "#fff", border: "1px solid #e8d9c8", borderRadius: 6, padding: "6px 10px" }}>
+                🧒 Child (5–11 yrs): <strong>{form.baseCurrency} {halfPrice.toLocaleString()}</strong> (half price)
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <label className="form-label form-check" style={{ gridColumn: "1/-1" }}>
+          <input type="checkbox" checked={form.isActive} onChange={(e) => setForm({ ...form, isActive: e.target.checked })} />
+          Active (visible to customers)
+        </label>
+      </div>
+    );
+  };
 
   return (
     <div>
@@ -151,8 +331,23 @@ export default function ProductsPage({ token, type }) {
                 <div className="product-title">{p.title}</div>
                 <div className="product-meta">
                   <span className={`badge badge-${p.type}`}>{p.type}</span>
-                  <span className="product-price">{p.baseCurrency} {p.basePrice?.toLocaleString()}</span>
+                  <span className="product-price">
+                    {p.type === "vehicle" && p.transferPricing
+                      ? (() => {
+                          const tp = p.transferPricing;
+                          const first = tp.airportOneWay || tp.airportTwoWay || tp.hotelTransfer || tp.fullDay4hrs || tp.fullDay8hrs || 0;
+                          return first > 0 ? `${p.baseCurrency} ${Number(first).toLocaleString()} from` : `${p.baseCurrency} 0`;
+                        })()
+                      : `${p.baseCurrency} ${p.basePrice?.toLocaleString()}`}
+                  </span>
                 </div>
+                {p.type === "vehicle" && (
+                  <div style={{ fontSize: 12, color: "#6b5b4a", marginTop: 4, display: "flex", gap: 8, flexWrap: "wrap" }}>
+                    {p.vehicleCapacity && <span>👥 {p.vehicleCapacity} seats</span>}
+                    {p.hasAC && <span>❄️ AC</span>}
+                    {p.luggageCapacity > 0 && <span>🧳 {p.luggageCapacity} bags</span>}
+                  </div>
+                )}
                 {p.description && <p className="product-desc">{p.description.slice(0, 80)}{p.description.length > 80 ? "…" : ""}</p>}
                 {p.tags?.length > 0 && (
                   <div className="tag-list">{p.tags.map((t) => <span key={t} className="tag-chip">{t}</span>)}</div>
@@ -200,6 +395,8 @@ export default function ProductsPage({ token, type }) {
 
             <div className="modal-body">
               {tab === "basic" && (
+                type === "tour" ? renderTourBasic() :
+                type === "vehicle" ? renderVehicleBasic() : (
                 <div className="form-grid">
                   <label className="form-label">Title *
                     <input className="form-input" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="Product title" />
@@ -228,6 +425,7 @@ export default function ProductsPage({ token, type }) {
                     Active (visible to customers)
                   </label>
                 </div>
+                )
               )}
 
               {tab === "media" && (

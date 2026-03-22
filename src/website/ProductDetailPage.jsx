@@ -25,9 +25,13 @@ export default function ProductDetailPage() {
 
   const images = product.media?.filter((m) => m.type === "image") || [];
   const inCart = items.some((i) => i._id === product._id);
+  const isTour = product.type === "tour";
+
+  const adultPrice = product.basePrice || 0;
+  const childPrice = product.childPricing?.childPrice ?? Math.round(adultPrice / 2);
 
   const handleAdd = () => {
-    addItem(product, guests);
+    addItem(product, isTour ? { infants: 0, children: 0, adults: 1 } : guests);
     setAdded(true);
     setTimeout(() => setAdded(false), 2000);
   };
@@ -49,13 +53,9 @@ export default function ProductDetailPage() {
           {images.length > 1 && (
             <div className="ws-gallery-thumbs">
               {images.map((img, i) => (
-                <img
-                  key={i}
-                  src={img.url}
-                  alt=""
+                <img key={i} src={img.url} alt=""
                   className={i === activeImg ? "ws-thumb-active" : ""}
-                  onClick={() => setActiveImg(i)}
-                />
+                  onClick={() => setActiveImg(i)} />
               ))}
             </div>
           )}
@@ -75,10 +75,27 @@ export default function ProductDetailPage() {
 
           {/* Pricing */}
           <div className="ws-pricing-box">
-            <div className="ws-price-main">
-              {product.baseCurrency} {product.basePrice?.toLocaleString()}
-              <span className="ws-price-per"> / person</span>
-            </div>
+            {isTour ? (
+              <div className="ws-tour-pricing">
+                <div className="ws-tour-price-row">
+                  <span>👨 Adult (11+ yrs)</span>
+                  <span className="ws-price-main">{product.baseCurrency} {adultPrice.toLocaleString()}</span>
+                </div>
+                <div className="ws-tour-price-row">
+                  <span>🧒 Child (5–11 yrs)</span>
+                  <span>{product.baseCurrency} {childPrice.toLocaleString()}</span>
+                </div>
+                <div className="ws-tour-price-row">
+                  <span>👶 Infant (0–5 yrs)</span>
+                  <span className="ws-free-tag">FREE</span>
+                </div>
+              </div>
+            ) : (
+              <div className="ws-price-main">
+                {product.baseCurrency} {product.basePrice?.toLocaleString()}
+                <span className="ws-price-per"> / person</span>
+              </div>
+            )}
 
             {product.markets?.length > 0 && (
               <div className="ws-market-prices">
@@ -93,18 +110,26 @@ export default function ProductDetailPage() {
             )}
           </div>
 
-          {/* Guests */}
-          <div className="ws-guests-row">
-            <label>Guests</label>
-            <div className="ws-qty">
-              <button onClick={() => setGuests((g) => Math.max(1, g - 1))}>−</button>
-              <span>{guests}</span>
-              <button onClick={() => setGuests((g) => g + 1)}>+</button>
+          {/* Guests — only for non-tour */}
+          {!isTour && (
+            <div className="ws-guests-row">
+              <label>Guests</label>
+              <div className="ws-qty">
+                <button onClick={() => setGuests((g) => Math.max(1, g - 1))}>−</button>
+                <span>{guests}</span>
+                <button onClick={() => setGuests((g) => g + 1)}>+</button>
+              </div>
+              <span className="ws-subtotal">
+                = {product.baseCurrency} {(product.basePrice * guests).toLocaleString()}
+              </span>
             </div>
-            <span className="ws-subtotal">
-              = {product.baseCurrency} {(product.basePrice * guests).toLocaleString()}
-            </span>
-          </div>
+          )}
+
+          {isTour && (
+            <div className="ws-tour-info-note">
+              👥 Select number of guests in cart
+            </div>
+          )}
 
           <button
             className={`ws-add-btn-lg ${added ? "ws-add-btn-added" : ""}`}
