@@ -18,7 +18,8 @@ const TOUR_CATEGORIES = [
   "Sea Activity", "Safari", "City Tour", "Adventure", "Cultural", "Wildlife", "Water Sports", "Hiking", "Other",
 ];
 
-const TYPE_ICONS = { hotel: "🏨", tour: "🗺️", package: "📦", vehicle: "🚗" };
+const TYPE_ICONS = { hotel: "🏨", tour: "🌊", package: "📦", vehicle: "🚗" };
+const TYPE_LABELS = { hotel: "Hotel", tour: "Sea Activity", package: "Package", vehicle: "Vehicle" };
 
 const blankForm = (type) => ({
   title: "", type, description: "", tags: "",
@@ -45,6 +46,7 @@ export default function ProductsPage({ token, type }) {
   const [tab, setTab] = useState("basic");
   const [mediaUrl, setMediaUrl] = useState("");
   const [mediaType, setMediaType] = useState("image");
+  const [uploading, setUploading] = useState(false);
   const [search, setSearch] = useState("");
 
   const headers = { Authorization: `Bearer ${token}`, "Content-Type": "application/json" };
@@ -155,6 +157,42 @@ export default function ProductsPage({ token, type }) {
     setMediaUrl("");
   };
 
+  const handleFileUpload = async (e) => {
+    const files = Array.from(e.target.files);
+    if (!files.length) return;
+    setUploading(true);
+    const newMedia = await Promise.all(
+      files.map((file) => new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          if (file.type.startsWith("video")) {
+            resolve({ type: "video", url: ev.target.result, caption: "" });
+            return;
+          }
+          // Compress image via canvas
+          const img = new Image();
+          img.onload = () => {
+            const MAX = 1000;
+            let w = img.width, h = img.height;
+            if (w > MAX || h > MAX) {
+              if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
+              else       { w = Math.round(w * MAX / h); h = MAX; }
+            }
+            const canvas = document.createElement("canvas");
+            canvas.width = w; canvas.height = h;
+            canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+            resolve({ type: "image", url: canvas.toDataURL("image/jpeg", 0.75), caption: "" });
+          };
+          img.src = ev.target.result;
+        };
+        reader.readAsDataURL(file);
+      }))
+    );
+    setForm((f) => ({ ...f, media: [...f.media, ...newMedia] }));
+    setUploading(false);
+    e.target.value = "";
+  };
+
   const removeMedia = (i) => setForm((f) => ({ ...f, media: f.media.filter((_, idx) => idx !== i) }));
 
   const setMarket = (i, field, val) => setForm((f) => {
@@ -227,7 +265,7 @@ export default function ProductsPage({ token, type }) {
     );
   };
 
-  const label = type.charAt(0).toUpperCase() + type.slice(1);
+  const label = TYPE_LABELS[type] || (type.charAt(0).toUpperCase() + type.slice(1));
 
   // Tour basic tab — simplified form
   const renderTourBasic = () => {
@@ -430,15 +468,32 @@ export default function ProductsPage({ token, type }) {
 
               {tab === "media" && (
                 <div>
+                  {/* URL input */}
                   <div className="media-add-row">
                     <select className="form-input" style={{ width: 110 }} value={mediaType} onChange={(e) => setMediaType(e.target.value)}>
                       <option value="image">🖼️ Image</option>
                       <option value="video">🎬 Video</option>
                     </select>
                     <input className="form-input" style={{ flex: 1 }} value={mediaUrl} onChange={(e) => setMediaUrl(e.target.value)} placeholder="Paste image or video URL..." />
-                    <button className="btn-primary" onClick={addMedia}>Add</button>
+                    <button className="btn-primary" onClick={addMedia}>Add URL</button>
                   </div>
-                  <p className="form-hint">Paste direct URLs for images (jpg, png, webp) or videos (mp4, YouTube, etc.)</p>
+
+                  {/* File upload */}
+                  <div className="media-upload-row">
+                    <label className="media-upload-btn">
+                      {uploading ? "⏳ Uploading..." : "📁 Upload from Device"}
+                      <input
+                        type="file"
+                        accept="image/*,video/*"
+                        multiple
+                        style={{ display: "none" }}
+                        onChange={handleFileUpload}
+                        disabled={uploading}
+                      />
+                    </label>
+                    <span className="form-hint" style={{ margin: 0 }}>JPG, PNG, WEBP, MP4 supported</span>
+                  </div>
+
                   <div className="media-grid">
                     {form.media.length === 0 && <p className="empty">No media added yet.</p>}
                     {form.media.map((m, i) => (

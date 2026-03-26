@@ -146,7 +146,7 @@ export default function HomePage() {
       <div className="hp-sections-wrap">
         <SectionGrid type="hotel"   title="Featured Hotels"  icon="🏨" viewAllPath="/hotels"   emptyMsg="Hotels coming soon!" />
         <SectionGrid type="package" title="Tour Packages"    icon="📦" viewAllPath="/packages" emptyMsg="Packages coming soon!" />
-        <SectionGrid type="tour"    title="Guided Tours"     icon="🗺️" viewAllPath="/tours"    emptyMsg="Tours coming soon!" />
+        <SectionGrid type="tour"    title="Sea Activities"  icon="🌊" viewAllPath="/tours"    emptyMsg="Sea activities coming soon!" />
         <SectionGrid type="vehicle" title="Vehicle Rentals"  icon="🚗" viewAllPath="/vehicles" emptyMsg="Vehicles coming soon!" />
       </div>
 

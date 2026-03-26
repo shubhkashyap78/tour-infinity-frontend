@@ -12,7 +12,7 @@ const NAV_ITEMS = [
   { key: "enquiries",   label: "Enquiries",   icon: "📬" },
   { key: "bookings",    label: "Bookings",    icon: "📋" },
   { key: "hotel",       label: "Hotels",      icon: "🏨" },
-  { key: "tour",        label: "Tours",       icon: "🗺️" },
+  { key: "tour",        label: "Sea Activities", icon: "🌊" },
   { key: "package",     label: "Packages",    icon: "📦" },
   { key: "vehicle",     label: "Vehicles",    icon: "🚗" },
   { key: "subscribers", label: "Subscribers", icon: "📧" },
