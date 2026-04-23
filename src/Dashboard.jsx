@@ -2,24 +2,31 @@ import { useEffect, useState } from "react";
 import { apiFetch } from "./api";
 import OverviewPage from "./pages/OverviewPage";
 import BookingsPage from "./pages/BookingsPage";
-import ProductsPage from "./pages/ProductsPage";
+import SimpleProductsPage from "./pages/SimpleProductsPage";
 import SubscribersPage from "./pages/SubscribersPage";
 import UsersPage from "./pages/UsersPage";
 import EnquiriesPage from "./pages/EnquiriesPage";
+import LeadsPage from "./pages/LeadsPage";
+import QuotationsPage from "./pages/QuotationsPage";
+import DraftQuotationsPage from "./pages/DraftQuotationsPage";
 
 const NAV_ITEMS = [
-  { key: "overview",    label: "Dashboard",   icon: "🏠" },
-  { key: "enquiries",   label: "Enquiries",   icon: "📬" },
-  { key: "bookings",    label: "Bookings",    icon: "📋" },
+  { key: "overview",    label: "Dashboard",   icon: "📊" },
+  { key: "leads",       label: "Leads",       icon: "🎯" },
+  { key: "drafts",      label: "Draft Quotes", icon: "📝" },
+  { key: "quotations",  label: "Quotations",  icon: "📋" },
+  { key: "bookings",    label: "Bookings",    icon: "📅" },
+  { key: "enquiries",   label: "Enquiries",   icon: "💬" },
   { key: "hotel",       label: "Hotels",      icon: "🏨" },
-  { key: "tour",        label: "Sea Activities", icon: "🌊" },
+  { key: "tour",        label: "Tours",       icon: "🗺️" },
   { key: "package",     label: "Packages",    icon: "📦" },
   { key: "vehicle",     label: "Vehicles",    icon: "🚗" },
-  { key: "subscribers", label: "Subscribers", icon: "📧" },
+  { key: "subscribers", label: "Newsletter",  icon: "📧" },
   { key: "users",       label: "Team",        icon: "👥" },
 ];
 
 export default function Dashboard({ token, onLogout }) {
+  const [leads, setLeads] = useState([]);
   const [subscribers, setSubscribers] = useState([]);
   const [bookings, setBookings] = useState([]);
   const [enquiryCount, setEnquiryCount] = useState(0);
@@ -34,19 +41,21 @@ export default function Dashboard({ token, onLogout }) {
 
   const loadCoreData = async () => {
     try {
-      const [meRes, subRes, bookRes, statsRes, prodRes, enqRes] = await Promise.all([
+      const [meRes, subRes, bookRes, statsRes, prodRes, enqRes, leadRes] = await Promise.all([
         apiFetch("/api/auth/me",         { headers }),
         apiFetch("/api/newsletter",      { headers }),
         apiFetch("/api/bookings",        { headers }),
         apiFetch("/api/bookings/stats",  { headers }),
         apiFetch("/api/products",        { headers }),
         apiFetch("/api/enquiries",       { headers }),
+        apiFetch("/api/leads",           { headers }),
       ]);
       if (meRes.ok) { const meData = await meRes.json(); setUser(meData.user); }
       if (subRes.ok)  setSubscribers(await subRes.json());
       if (bookRes.ok) setBookings(await bookRes.json());
       if (statsRes.ok) setStats(await statsRes.json());
       if (enqRes.ok)  { const enqs = await enqRes.json(); setEnquiryCount(enqs.filter((e) => e.status === "new").length); }
+      if (leadRes.ok) { const leadData = await leadRes.json(); setLeads(leadData.leads || []); }
       if (prodRes.ok) {
         const prods = await prodRes.json();
         const counts = {};
@@ -70,6 +79,7 @@ export default function Dashboard({ token, onLogout }) {
 
   const badgeCount = (key) => {
     if (key === "overview")     return null;
+    if (key === "leads")        return leads.filter(l => l.status === "New").length || null;
     if (key === "subscribers")  return subscribers.length;
     if (key === "bookings")     return stats?.bookings?.total ?? bookings.length;
     if (key === "enquiries")    return enquiryCount || null;
@@ -84,8 +94,8 @@ export default function Dashboard({ token, onLogout }) {
       <header className="dash-header">
         <div className="dash-header-left">
           <button className="btn-toggle" onClick={() => setSidebarOpen((o) => !o)}>☰</button>
-          <img src="/assests/logo.jpeg" alt="logo" className="header-logo" />
-          <div className="dash-brand">Eastcape Booking <span>Admin</span></div>
+          <img src="/assests/logo.png" alt="logo" className="header-logo" />
+          <div className="dash-brand">TourInfinity <span>CRM</span></div>
         </div>
         <div className="dash-user">
           👤 {user?.name} &nbsp;|&nbsp;
@@ -137,6 +147,14 @@ export default function Dashboard({ token, onLogout }) {
             />
           )}
 
+          {active === "drafts" && (
+            <DraftQuotationsPage token={token} />
+          )}
+
+          {active === "quotations" && (
+            <QuotationsPage token={token} onNavigate={setActive} onRefresh={loadCoreData} />
+          )}
+
           {active === "bookings" && (
             <BookingsPage
               bookings={bookings}
@@ -146,7 +164,7 @@ export default function Dashboard({ token, onLogout }) {
           )}
 
           {PRODUCT_TYPES.includes(active) && (
-            <ProductsPage key={active} token={token} type={active} />
+            <SimpleProductsPage key={active} token={token} type={active} />
           )}
 
           {active === "subscribers" && (
@@ -155,6 +173,10 @@ export default function Dashboard({ token, onLogout }) {
 
           {active === "users" && (
             <UsersPage token={token} />
+          )}
+
+          {active === "leads" && (
+            <LeadsPage token={token} />
           )}
 
           {active === "enquiries" && (

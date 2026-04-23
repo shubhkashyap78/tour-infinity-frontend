@@ -25,14 +25,14 @@ export default function OverviewPage({ stats, productCounts, subscribers, bookin
 
   return (
     <>
-      <h2>📊 Dashboard</h2>
+      <h2>📊 Dashboard Overview</h2>
 
-      <div className="section-title">Booking Overview</div>
+      <div className="section-title">Business Metrics</div>
       <div className="stat-grid">
         {bookingCards.map(({ label, value, icon, color, key }) => (
           <div className="stat-card" key={label}
             onClick={() => key && setActive(key)}
-            style={{ cursor: key ? "pointer" : "default", borderTop: `3px solid ${color}` }}>
+            style={{ cursor: key ? "pointer" : "default" }}>
             <div className="stat-icon">{icon}</div>
             <div className="stat-num">{value}</div>
             <div className="stat-label">{label}</div>
@@ -40,7 +40,7 @@ export default function OverviewPage({ stats, productCounts, subscribers, bookin
         ))}
       </div>
 
-      <div className="section-title" style={{ marginTop: 32 }}>Inventory</div>
+      <div className="section-title">Inventory Management</div>
       <div className="stat-grid">
         {inventoryCards.map(({ label, value, icon, key }) => (
           <div className="stat-card" key={label} onClick={() => setActive(key)} style={{ cursor: "pointer" }}>
@@ -53,7 +53,7 @@ export default function OverviewPage({ stats, productCounts, subscribers, bookin
 
       {monthly.length > 0 && (
         <>
-          <div className="section-title" style={{ marginTop: 32 }}>Monthly Revenue</div>
+          <div className="section-title">Revenue Analytics</div>
           <div className="chart-card">
             <div className="bar-chart">
               {monthly.map((m) => {
@@ -73,7 +73,7 @@ export default function OverviewPage({ stats, productCounts, subscribers, bookin
 
       {stats?.byType?.length > 0 && (
         <>
-          <div className="section-title" style={{ marginTop: 32 }}>Bookings by Type</div>
+          <div className="section-title">Performance by Category</div>
           <div className="type-grid">
             {stats.byType.map((t) => (
               <div className="type-card" key={t._id}>
@@ -86,7 +86,7 @@ export default function OverviewPage({ stats, productCounts, subscribers, bookin
         </>
       )}
 
-      <div className="section-title" style={{ marginTop: 32 }}>Recent Bookings</div>
+      <div className="section-title">Recent Activity</div>
       {bookings.length === 0 ? (
         <p className="empty">No bookings yet.</p>
       ) : (

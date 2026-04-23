@@ -1,16 +1,7 @@
 import { useState } from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import Dashboard from "./Dashboard";
 import { apiFetch } from "./api";
-import WebsiteLayout from "./website/WebsiteLayout";
-import HomePage from "./website/HomePage";
-import ProductDetailPage from "./website/ProductDetailPage";
-import CartPage from "./website/CartPage";
-import HotelsPage from "./website/HotelsPage";
-import ToursPage from "./website/ToursPage";
-import PackagesPage from "./website/PackagesPage";
-import VehiclesPage from "./website/VehiclesPage";
-import ContactPage from "./website/ContactPage";
 
 // Decode JWT payload locally — no network call needed
 const getStoredToken = () => {
@@ -63,8 +54,8 @@ function AdminApp() {
   return (
     <div className="page">
       <div className="hero">
-        <img src="/assests/logo.jpeg" alt="Eastcape Logo" className="hero-logo" />
-        <div className="brand">Eastcape Booking</div>
+        <img src="/assests/logo.png" alt="Andaman Tour Infinity Logo" className="hero-logo" />
+        <div className="brand">Andaman Tour Infinity</div>
         <div className="tag">Admin Console</div>
         <p className="lead">
           Secure access for your team to manage hotels, tours, packages, and vehicle inventory.
@@ -90,23 +81,7 @@ function AdminApp() {
 export default function App() {
   return (
     <Routes>
-      {/* Public website */}
-      <Route path="/" element={<WebsiteLayout />}>
-        <Route index element={<HomePage />} />
-        <Route path="hotels" element={<HotelsPage />} />
-        <Route path="tours" element={<ToursPage />} />
-        <Route path="packages" element={<PackagesPage />} />
-        <Route path="vehicles" element={<VehiclesPage />} />
-        <Route path="contact" element={<ContactPage />} />
-        <Route path="product/:id" element={<ProductDetailPage />} />
-        <Route path="cart" element={<CartPage />} />
-      </Route>
-
-      {/* Admin */}
-      <Route path="/admin/*" element={<AdminApp />} />
-
-      {/* Fallback */}
-      <Route path="*" element={<Navigate to="/" replace />} />
+      <Route path="/*" element={<AdminApp />} />
     </Routes>
   );
 }

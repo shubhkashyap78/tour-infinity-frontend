@@ -28,19 +28,19 @@ function InvoiceDocument({ booking }) {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", borderBottom: "3px solid #1d1a15", paddingBottom: 20, marginBottom: 24 }}>
         <div>
           <img
-            src="/assests/logo.jpeg"
+            src="/assests/logo.png"
             alt="logo"
             crossOrigin="anonymous"
             style={{ width: 64, height: 64, objectFit: "contain", borderRadius: 10, marginBottom: 10, display: "block" }}
           />
-          <div style={{ fontSize: 22, fontWeight: 800, letterSpacing: 1 }}>Eastcape Booking</div>
+          <div style={{ fontSize: 22, fontWeight: 800, letterSpacing: 1 }}>Andaman Tour Infinity</div>
           <div style={{ fontSize: 13, color: "#6b5b4a", marginTop: 2 }}>Mauritius Travel &amp; Tours</div>
           <div style={{ marginTop: 4, fontSize: 12, color: "#6b5b4a", fontWeight: 700 }}>VAT Reg No: {VAT_REG_NO}</div>
           <div style={{ marginTop: 10, fontSize: 12, color: "#6b5b4a", lineHeight: 1.8 }}>
             <div>📍 Mauritius, Indian Ocean</div>
             <div>📞 +230 5729 2475</div>
             <div>📞 +230 5793 9800</div>
-            <div>✉️ info@eastcapebooking.com</div>
+            <div>✉️ info@andamantourinfinity.com</div>
           </div>
         </div>
         <div style={{ textAlign: "right" }}>
@@ -54,11 +54,11 @@ function InvoiceDocument({ booking }) {
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, marginBottom: 24 }}>
         <div>
           <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: 2, color: "#9b8b7a", marginBottom: 6, fontWeight: 700 }}>FROM</div>
-          <div style={{ fontSize: 15, fontWeight: 700 }}>Eastcape Booking</div>
+          <div style={{ fontSize: 15, fontWeight: 700 }}>Andaman Tour Infinity</div>
           <div style={{ fontSize: 12, color: "#6b5b4a", lineHeight: 1.8 }}>
             <div>Mauritius, Indian Ocean</div>
             <div>+230 5729 2475 / +230 5793 9800</div>
-            <div>info@eastcapebooking.com</div>
+            <div>info@andamantourinfinity.com</div>
           </div>
         </div>
         <div>
@@ -142,7 +142,7 @@ function InvoiceDocument({ booking }) {
 
       {/* Footer */}
       <div style={{ borderTop: "1px solid #e2cbb3", paddingTop: 16, textAlign: "center", fontSize: 12, color: "#9b8b7a" }}>
-        Thank you for choosing Eastcape Booking — Mauritius Travel &amp; Tours
+        Thank you for choosing Andaman Tour Infinity — Mauritius Travel &amp; Tours
       </div>
     </div>
   );
@@ -171,7 +171,7 @@ export default function InvoicePage({ bookingId, token, onClose }) {
     const subtotal = bk.totalAmount / (1 + GST_RATE);
     const gst = bk.totalAmount - subtotal;
     const msg = [
-      `*INVOICE — Eastcape Booking*`,
+      `*INVOICE — Andaman Tour Infinity*`,
       `📋 Ref: ${bk.bookingRef || bk._id}`,
       `📅 Date: ${fmtDate(bk.createdAt)}`,
       ``,
@@ -188,7 +188,7 @@ export default function InvoicePage({ bookingId, token, onClose }) {
       `*VAT Reg No:* ${VAT_REG_NO}`,
       `*Payment Status:* ${bk.paymentStatus}`,
       ``,
-      `Thank you for choosing Eastcape Booking 🌴`,
+      `Thank you for choosing Andaman Tour Infinity 🌴`,
       `+230 5729 2475 | +230 5793 9800`,
     ].join("\n");
     const phone = bk.customerPhone?.replace(/[^0-9]/g, "");

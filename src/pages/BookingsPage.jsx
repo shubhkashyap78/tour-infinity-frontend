@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { apiFetch } from "../api";
+import toast from "react-hot-toast";
 import InvoicePage from "./InvoicePage";
 
 export default function BookingsPage({ bookings, token, onRefresh }) {
@@ -13,13 +14,33 @@ export default function BookingsPage({ bookings, token, onRefresh }) {
   const closeInvoice = () => { setInvoiceOpen(false); setInvoiceBookingId(null); };
 
   const updateStatus = async (id, status) => {
-    await apiFetch(`/api/bookings/${id}`, { method: "PUT", headers, body: JSON.stringify({ status }) });
-    onRefresh();
+    const loadingToast = toast.loading(`Updating status to ${status}...`);
+    try {
+      const res = await apiFetch(`/api/bookings/${id}`, { method: "PUT", headers, body: JSON.stringify({ status }) });
+      if (res.ok) {
+        toast.success(`✅ Booking status updated to ${status}`, { id: loadingToast });
+        onRefresh();
+      } else {
+        toast.error("Failed to update status", { id: loadingToast });
+      }
+    } catch (error) {
+      toast.error("Error updating status", { id: loadingToast });
+    }
   };
 
   const updatePayment = async (id, paymentStatus) => {
-    await apiFetch(`/api/bookings/${id}`, { method: "PUT", headers, body: JSON.stringify({ paymentStatus }) });
-    onRefresh();
+    const loadingToast = toast.loading(`Updating payment status...`);
+    try {
+      const res = await apiFetch(`/api/bookings/${id}`, { method: "PUT", headers, body: JSON.stringify({ paymentStatus }) });
+      if (res.ok) {
+        toast.success(`✅ Payment status updated to ${paymentStatus}`, { id: loadingToast });
+        onRefresh();
+      } else {
+        toast.error("Failed to update payment status", { id: loadingToast });
+      }
+    } catch (error) {
+      toast.error("Error updating payment status", { id: loadingToast });
+    }
   };
 
   const filtered = bookings
