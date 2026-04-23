@@ -1,4 +1,4 @@
-const BASE = "https://tour-infinity-backend.onrender.com";
+const BASE = import.meta.env.VITE_API_URL || "https://tour-infinity-backend.onrender.com";
 
 export const apiFetch = (path, options = {}) =>
   fetch(`${BASE}${path}`, {
