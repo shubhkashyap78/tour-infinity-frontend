@@ -95,7 +95,7 @@ export default function Dashboard({ token, onLogout }) {
         <div className="dash-header-left">
           <button className="btn-toggle" onClick={() => setSidebarOpen((o) => !o)}>☰</button>
           <img src="/assests/logo.png" alt="logo" className="header-logo" />
-          <div className="dash-brand">TourInfinity <span>CRM</span></div>
+          <div className="dash-brand">Andaman Destinations <span>CRM</span></div>
         </div>
         <div className="dash-user">
           👤 {user?.name} &nbsp;|&nbsp;

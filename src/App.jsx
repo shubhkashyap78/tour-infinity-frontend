@@ -54,8 +54,8 @@ function AdminApp() {
   return (
     <div className="page">
       <div className="hero">
-        <img src="/assests/logo.png" alt="Andaman Tour Infinity Logo" className="hero-logo" />
-        <div className="brand">Andaman Tour Infinity</div>
+        <img src="/assests/logo.png" alt="Andaman Destinations Logo" className="hero-logo" />
+        <div className="brand">Andaman Destinations</div>
         <div className="tag">Admin Console</div>
         <p className="lead">
           Secure access for your team to manage hotels, tours, packages, and vehicle inventory.

@@ -1,7 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { apiFetch } from "../api";
 import toast from "react-hot-toast";
 import QuotationBuilder from "./QuotationBuilder";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 
 const STATUS_COLORS = {
   "Draft": "status-pending",
@@ -11,6 +13,316 @@ const STATUS_COLORS = {
   "Rejected": "status-cancelled",
   "Expired": "status-cancelled"
 };
+
+// Shared PDF Modal Component
+function QuotationPDFModal({ quotation, onClose, extraActions }) {
+  const previewRef = useRef(null);
+
+  const downloadPDF = async () => {
+    if (!previewRef.current) return;
+    try {
+      const pdf = new jsPDF("p", "mm", "a4");
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const margins = { left: 0, right: 0, top: 0, bottom: 0 };
+      const canvas = await html2canvas(previewRef.current, { scale: 1.4, useCORS: true, backgroundColor: "#ffffff" });
+      const imgWidth = pageWidth;
+      const pxPerMm = canvas.width / imgWidth;
+      const pageHeightPx = pageHeight * pxPerMm;
+      const pageCount = Math.ceil(canvas.height / pageHeightPx);
+      for (let page = 0; page < pageCount; page++) {
+        const sliceH = Math.min(pageHeightPx, canvas.height - page * pageHeightPx);
+        const c = document.createElement("canvas");
+        c.width = canvas.width; c.height = sliceH;
+        c.getContext("2d").drawImage(canvas, 0, page * pageHeightPx, canvas.width, sliceH, 0, 0, canvas.width, sliceH);
+        pdf.addImage(c.toDataURL("image/jpeg", 0.7), "JPEG", 0, 0, imgWidth, sliceH / pxPerMm, undefined, "FAST");
+        if (page < pageCount - 1) pdf.addPage();
+      }
+      pdf.save(`Quotation-${quotation.quotationRef}.pdf`);
+    } catch (err) { alert("Failed to generate PDF."); }
+  };
+
+  const q = quotation;
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="quotation-builder" onClick={(e) => e.stopPropagation()}>
+        <div className="quotation-header">
+          <div>
+            <h2>📋 Quotation Preview</h2>
+            <div className="quotation-meta">
+              <span className="quotation-ref">{q.quotationRef}</span>
+              <span className="quotation-customer">{q.customerName}</span>
+              <span className="quotation-status">{q.status}</span>
+            </div>
+          </div>
+          <button className="btn-close" onClick={onClose}>×</button>
+        </div>
+        <div className="quotation-body">
+          <div className="preview-tab">
+            <div className="quotation-preview">
+              <div className="preview-header">
+                <h3>Quotation Preview</h3>
+                <div className="preview-actions">
+                  <button className="btn-secondary" onClick={downloadPDF}>📄 Download PDF</button>
+                  {extraActions}
+                </div>
+              </div>
+
+              <div ref={previewRef} style={{background:"#fff",fontFamily:"Arial, sans-serif",color:"#1a1a1a",fontSize:"13px",lineHeight:"1.6",position:"relative"}}>
+                <div style={{position:"absolute",top:0,left:0,right:0,bottom:0,overflow:"hidden",pointerEvents:"none",zIndex:0,opacity:0.05,fontSize:"10px",color:"#1d4ed8",wordBreak:"break-all",padding:"8px",lineHeight:"2"}}>
+                  {Array(60).fill(`Andaman Tour Infinity • ${q.quotationRef} • `).join("")}
+                </div>
+                <div style={{position:"relative",zIndex:1,padding:"28px"}}>
+
+                  {/* HEADER */}
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"6px"}}>
+                    <div style={{display:"flex",alignItems:"center",gap:"12px"}}>
+                      <img src="/assests/logo.png" alt="logo" style={{height:"60px",objectFit:"contain"}} />
+                      <div>
+                        <div style={{fontSize:"20px",fontWeight:"800",color:"#1d4ed8"}}>Andaman Tour Infinity</div>
+                        <div style={{fontSize:"11px",color:"#6b7280"}}>Your Trusted Andaman Travel Partner</div>
+                      </div>
+                    </div>
+                    <div style={{textAlign:"right",fontSize:"11px",color:"#4b5563",lineHeight:"1.9"}}>
+                      <div>📍 Dollygunj, Port Blair, Andaman – 744103</div>
+                      <div>📞 +91 94760 44578</div>
+                      <div>✉️ booking@andamantourinfinity.com</div>
+                      <div>🌐 www.andamantourinfinity.com</div>
+                    </div>
+                  </div>
+                  <div style={{height:"3px",background:"linear-gradient(90deg,#1d4ed8,#60a5fa)",borderRadius:"2px",marginBottom:"16px"}} />
+
+                  {/* GREETING */}
+                  <div style={{background:"#eff6ff",border:"1px solid #bfdbfe",borderRadius:"8px",padding:"12px 16px",marginBottom:"16px",fontSize:"12px"}}>
+                    <div style={{fontWeight:"700",marginBottom:"4px"}}>Dear {q.customerName},</div>
+                    <div>Greetings from Andaman Tour Infinity. Our sales team has put up this Quote regarding your upcoming trip. Please go through it and let us know if you would like any changes.</div>
+                  </div>
+
+                  {/* CUSTOMER DETAILS */}
+                  <div style={{marginBottom:"16px"}}>
+                    <div style={{fontSize:"12px",fontWeight:"700",color:"#1d4ed8",textTransform:"uppercase",letterSpacing:"1px",marginBottom:"8px",borderBottom:"2px solid #bfdbfe",paddingBottom:"4px"}}>Customer Details</div>
+                    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"6px 20px",fontSize:"12px"}}>
+                      {[["Name",q.customerName],["Phone",q.lead?.phone||q.phone||"—"],["Email",q.lead?.email||q.email||"—"],["Source",q.lead?.source||"—"]].map(([l,v],i)=>(
+                        <div key={i} style={{display:"flex",gap:"6px"}}>
+                          <span style={{color:"#6b7280",minWidth:"55px"}}>{l}:</span>
+                          <span style={{fontWeight:"600",color:"#111827"}}>{v}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* TRIP SUMMARY */}
+                  <div style={{border:"2px solid #1d4ed8",borderRadius:"8px",overflow:"hidden",marginBottom:"16px"}}>
+                    <div style={{background:"#1d4ed8",color:"#fff",padding:"8px 16px",display:"flex",justifyContent:"space-between",fontWeight:"700",fontSize:"13px"}}>
+                      <span>Quote Price</span><span>Trip ID: {q.quotationRef}</span>
+                    </div>
+                    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr"}}>
+                      {[
+                        {l:"DESTINATION",v:q.destination||"—"},
+                        {l:"START DATE",v:q.travelDates?.startDate?new Date(q.travelDates.startDate).toLocaleDateString("en-IN",{day:"numeric",month:"long",year:"numeric"}):"—"},
+                        {l:"DURATION",v:q.duration||"—"},
+                        {l:"PAX",v:`${q.groupSize.adults} Adults${q.groupSize.children>0?", "+q.groupSize.children+" Children":""}`},
+                        {l:"TOTAL (INR)",v:`₹${q.pricing.total.toLocaleString()} (excl. GST)`},
+                        {l:"STATUS",v:q.status}
+                      ].map((r,i)=>(
+                        <div key={i} style={{padding:"10px 14px",borderTop:"1px solid #e2e8f0",borderRight:i%3!==2?"1px solid #e2e8f0":"none"}}>
+                          <div style={{fontSize:"9px",fontWeight:"700",color:"#6b7280",textTransform:"uppercase",letterSpacing:"1px",marginBottom:"3px"}}>{r.l}</div>
+                          <div style={{fontWeight:"600",color:"#111827",fontSize:"12px"}}>{r.v}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* PRICE SUMMARY */}
+                  <div style={{display:"flex",justifyContent:"flex-end",marginBottom:"20px"}}>
+                    <div style={{width:"300px",border:"1px solid #e2e8f0",borderRadius:"8px",overflow:"hidden"}}>
+                      <div style={{background:"#1d4ed8",color:"#fff",padding:"8px 14px",fontSize:"11px",fontWeight:"700",textTransform:"uppercase",letterSpacing:"1px"}}>Price Summary</div>
+                      <div style={{padding:"0 14px"}}>
+                        <div style={{display:"flex",justifyContent:"space-between",padding:"7px 0",borderBottom:"1px solid #f1f5f9"}}>
+                          <span style={{color:"#6b7280"}}>Package Cost</span><span>₹{q.pricing.subtotal.toLocaleString()}</span>
+                        </div>
+                        {q.pricing.agentMarkupPercent>0&&<div style={{display:"flex",justifyContent:"space-between",padding:"7px 0",borderBottom:"1px solid #f1f5f9"}}><span style={{color:"#6b7280"}}>Service Charges ({q.pricing.agentMarkupPercent}%)</span><span>₹{(q.pricing.subtotal*q.pricing.agentMarkupPercent/100).toLocaleString()}</span></div>}
+                        {q.pricing.discountPercent>0&&<div style={{display:"flex",justifyContent:"space-between",padding:"7px 0",borderBottom:"1px solid #f1f5f9"}}><span style={{color:"#16a34a"}}>Discount ({q.pricing.discountPercent}%)</span><span style={{color:"#16a34a"}}>-₹{(q.pricing.subtotal*q.pricing.discountPercent/100).toLocaleString()}</span></div>}
+                        {q.pricing.taxPercent>0&&<div style={{display:"flex",justifyContent:"space-between",padding:"7px 0",borderBottom:"1px solid #f1f5f9"}}><span style={{color:"#6b7280"}}>GST ({q.pricing.taxPercent}%)</span><span>₹{q.pricing.taxes.toLocaleString()}</span></div>}
+                        <div style={{display:"flex",justifyContent:"space-between",padding:"10px 0",fontWeight:"800",fontSize:"15px",color:"#1d4ed8"}}><span>Total Amount</span><span>₹{q.pricing.total.toLocaleString()}</span></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* HOTELS */}
+                  {q.items.filter(i=>i.type==="hotel").length>0&&(
+                    <div style={{marginBottom:"16px"}}>
+                      <div style={{fontSize:"12px",fontWeight:"700",color:"#1d4ed8",textTransform:"uppercase",letterSpacing:"1px",marginBottom:"8px",borderBottom:"2px solid #bfdbfe",paddingBottom:"4px"}}>🏨 Hotels & Accommodation</div>
+                      <table style={{width:"100%",borderCollapse:"collapse",fontSize:"12px"}}>
+                        <thead><tr style={{background:"#1d4ed8",color:"#fff"}}>
+                          <th style={{padding:"7px 10px",textAlign:"left",width:"26px"}}>#</th>
+                          <th style={{padding:"7px 10px",textAlign:"left"}}>Hotel</th>
+                          <th style={{padding:"7px 10px",textAlign:"left"}}>Check-in</th>
+                          <th style={{padding:"7px 10px",textAlign:"left"}}>Nights / Rooms</th>
+                          <th style={{padding:"7px 10px",textAlign:"left"}}>Meal Plan</th>
+                          <th style={{padding:"7px 10px",textAlign:"right"}}>Amount</th>
+                        </tr></thead>
+                        <tbody>
+                          {q.items.filter(i=>i.type==="hotel").map((item,i)=>(
+                            <tr key={item._id} style={{background:i%2===0?"#f8fafc":"#fff",borderBottom:"1px solid #e2e8f0"}}>
+                              <td style={{padding:"8px 10px",color:"#6b7280",fontWeight:"600"}}>{i+1}</td>
+                              <td style={{padding:"8px 10px"}}>
+                                {item.image&&<img src={item.image} alt={item.name} style={{width:"100%",maxWidth:"160px",height:"auto",objectFit:"contain",borderRadius:"6px",marginBottom:"6px",display:"block"}} />}
+                                <div style={{fontWeight:"600",color:"#111827"}}>{item.name}</div>
+                                {item.roomType&&<div style={{color:"#6b7280",fontSize:"11px"}}>{item.roomType}</div>}
+                              </td>
+                              <td style={{padding:"8px 10px",fontSize:"11px",color:"#4b5563"}}>{item.checkIn?new Date(item.checkIn).toLocaleDateString("en-IN"):"—"}</td>
+                              <td style={{padding:"8px 10px",fontSize:"11px",color:"#4b5563"}}>{item.nights}N / {item.rooms} room{item.rooms>1?"s":""}</td>
+                              <td style={{padding:"8px 10px",fontSize:"11px",color:"#4b5563"}}>{item.mealPlan||"—"}</td>
+                              <td style={{padding:"8px 10px",textAlign:"right",fontWeight:"700",color:"#111827"}}>₹{item.subtotal.toLocaleString()}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+
+                  {/* PACKAGES */}
+                  {q.items.filter(i=>i.type==="package").length>0&&(
+                    <div style={{marginBottom:"16px"}}>
+                      <div style={{fontSize:"12px",fontWeight:"700",color:"#1d4ed8",textTransform:"uppercase",letterSpacing:"1px",marginBottom:"8px",borderBottom:"2px solid #bfdbfe",paddingBottom:"4px"}}>📦 Packages</div>
+                      <table style={{width:"100%",borderCollapse:"collapse",fontSize:"12px"}}>
+                        <thead><tr style={{background:"#1d4ed8",color:"#fff"}}>
+                          <th style={{padding:"7px 10px",textAlign:"left",width:"26px"}}>#</th>
+                          <th style={{padding:"7px 10px",textAlign:"left"}}>Package</th>
+                          <th style={{padding:"7px 10px",textAlign:"left"}}>Date</th>
+                          <th style={{padding:"7px 10px",textAlign:"left"}}>Pax</th>
+                          <th style={{padding:"7px 10px",textAlign:"right"}}>Amount</th>
+                        </tr></thead>
+                        <tbody>
+                          {q.items.filter(i=>i.type==="package").map((item,i)=>(
+                            <tr key={item._id} style={{background:i%2===0?"#f8fafc":"#fff",borderBottom:"1px solid #e2e8f0"}}>
+                              <td style={{padding:"8px 10px",color:"#6b7280",fontWeight:"600"}}>{i+1}</td>
+                              <td style={{padding:"8px 10px"}}>
+                                {item.image&&<img src={item.image} alt={item.name} style={{width:"100%",maxWidth:"160px",height:"auto",objectFit:"contain",borderRadius:"6px",marginBottom:"6px",display:"block"}} />}
+                                <div style={{fontWeight:"600",color:"#111827"}}>{item.name}</div>
+                                {item.description&&<div style={{color:"#6b7280",fontSize:"11px"}}>{item.description}</div>}
+                              </td>
+                              <td style={{padding:"8px 10px",fontSize:"11px",color:"#4b5563"}}>{item.serviceDate?new Date(item.serviceDate).toLocaleDateString("en-IN"):"—"}</td>
+                              <td style={{padding:"8px 10px",fontSize:"11px",color:"#4b5563"}}>{item.pax} pax</td>
+                              <td style={{padding:"8px 10px",textAlign:"right",fontWeight:"700",color:"#111827"}}>₹{item.subtotal.toLocaleString()}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+
+                  {/* TOURS */}
+                  {q.items.filter(i=>i.type==="tour").length>0&&(
+                    <div style={{marginBottom:"16px"}}>
+                      <div style={{fontSize:"12px",fontWeight:"700",color:"#1d4ed8",textTransform:"uppercase",letterSpacing:"1px",marginBottom:"8px",borderBottom:"2px solid #bfdbfe",paddingBottom:"4px"}}>🗺️ Tours & Activities</div>
+                      <table style={{width:"100%",borderCollapse:"collapse",fontSize:"12px"}}>
+                        <thead><tr style={{background:"#1d4ed8",color:"#fff"}}>
+                          <th style={{padding:"7px 10px",textAlign:"left",width:"26px"}}>#</th>
+                          <th style={{padding:"7px 10px",textAlign:"left"}}>Tour</th>
+                          <th style={{padding:"7px 10px",textAlign:"left"}}>Date</th>
+                          <th style={{padding:"7px 10px",textAlign:"left"}}>Pax</th>
+                          <th style={{padding:"7px 10px",textAlign:"right"}}>Amount</th>
+                        </tr></thead>
+                        <tbody>
+                          {q.items.filter(i=>i.type==="tour").map((item,i)=>(
+                            <tr key={item._id} style={{background:i%2===0?"#f8fafc":"#fff",borderBottom:"1px solid #e2e8f0"}}>
+                              <td style={{padding:"8px 10px",color:"#6b7280",fontWeight:"600"}}>{i+1}</td>
+                              <td style={{padding:"8px 10px"}}>
+                                {item.image&&<img src={item.image} alt={item.name} style={{width:"100%",maxWidth:"160px",height:"auto",objectFit:"contain",borderRadius:"6px",marginBottom:"6px",display:"block"}} />}
+                                <div style={{fontWeight:"600",color:"#111827"}}>{item.name}</div>
+                                {item.description&&<div style={{color:"#6b7280",fontSize:"11px"}}>{item.description}</div>}
+                              </td>
+                              <td style={{padding:"8px 10px",fontSize:"11px",color:"#4b5563"}}>{item.serviceDate?new Date(item.serviceDate).toLocaleDateString("en-IN"):"—"}</td>
+                              <td style={{padding:"8px 10px",fontSize:"11px",color:"#4b5563"}}>{item.pax} pax</td>
+                              <td style={{padding:"8px 10px",textAlign:"right",fontWeight:"700",color:"#111827"}}>₹{item.subtotal.toLocaleString()}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+
+                  {/* VEHICLES */}
+                  {q.items.filter(i=>i.type==="vehicle").length>0&&(
+                    <div style={{marginBottom:"20px"}}>
+                      <div style={{fontSize:"12px",fontWeight:"700",color:"#1d4ed8",textTransform:"uppercase",letterSpacing:"1px",marginBottom:"8px",borderBottom:"2px solid #bfdbfe",paddingBottom:"4px"}}>🚗 Vehicles & Transfers</div>
+                      <table style={{width:"100%",borderCollapse:"collapse",fontSize:"12px"}}>
+                        <thead><tr style={{background:"#1d4ed8",color:"#fff"}}>
+                          <th style={{padding:"7px 10px",textAlign:"left",width:"26px"}}>#</th>
+                          <th style={{padding:"7px 10px",textAlign:"left"}}>Vehicle</th>
+                          <th style={{padding:"7px 10px",textAlign:"left"}}>Type</th>
+                          <th style={{padding:"7px 10px",textAlign:"left"}}>Route</th>
+                          <th style={{padding:"7px 10px",textAlign:"left"}}>Qty</th>
+                          <th style={{padding:"7px 10px",textAlign:"right"}}>Amount</th>
+                        </tr></thead>
+                        <tbody>
+                          {q.items.filter(i=>i.type==="vehicle").map((item,i)=>(
+                            <tr key={item._id} style={{background:i%2===0?"#f8fafc":"#fff",borderBottom:"1px solid #e2e8f0"}}>
+                              <td style={{padding:"8px 10px",color:"#6b7280",fontWeight:"600"}}>{i+1}</td>
+                              <td style={{padding:"8px 10px",fontWeight:"600",color:"#111827"}}>{item.name}</td>
+                              <td style={{padding:"8px 10px",fontSize:"11px",color:"#4b5563"}}>{item.vehicleType||"—"}</td>
+                              <td style={{padding:"8px 10px",fontSize:"11px",color:"#4b5563"}}>{item.route||"—"}</td>
+                              <td style={{padding:"8px 10px",fontSize:"11px",color:"#4b5563"}}>{item.quantity}</td>
+                              <td style={{padding:"8px 10px",textAlign:"right",fontWeight:"700",color:"#111827"}}>₹{item.subtotal.toLocaleString()}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+
+                  {/* INCLUSIONS */}
+                  <div style={{marginBottom:"20px"}}>
+                    <div style={{fontSize:"12px",fontWeight:"700",color:"#1d4ed8",textTransform:"uppercase",letterSpacing:"1px",marginBottom:"8px",borderBottom:"2px solid #bfdbfe",paddingBottom:"4px"}}>✅ Inclusions</div>
+                    <div style={{fontSize:"12px",color:"#374151",display:"flex",flexDirection:"column",gap:"5px"}}>
+                      {["Accommodation as specified above.","All Accommodations - (Deluxe Hotels / Resorts)","Note: Check-in and check-out times at hotels would be as per hotel policies.","All entry tickets (as mentioned in the quotation)","All Sightseeing and Transfers by AC Personal Cab","Port Blair Airport Pick-up and Drop","Meals MAP (Daily Breakfast - Dinner)","All the boats and cruise are on sharing basis","All entry, Monuments, Parking and Permits charges as per itinerary.","Elephanta Boat Tickets Sharing Basis (Complementary Snorkeling 4 to 6 mins)","3-way Private Cruise charges","24 hours on-call assistance during your stay.","The Vehicle Will be used strictly as per your tour itinerary","Extra Fuel Surcharges will be applicable in this Package."].map((inc,i)=>(
+                        <div key={i} style={{display:"flex",gap:"8px",alignItems:"flex-start"}}>
+                          <span style={{color:"#16a34a",fontWeight:"700",flexShrink:0}}>✔</span>
+                          <span>{inc}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* EXCLUSIONS */}
+                  <div style={{marginBottom:"20px"}}>
+                    <div style={{fontSize:"12px",fontWeight:"700",color:"#ef4444",textTransform:"uppercase",letterSpacing:"1px",marginBottom:"8px",borderBottom:"2px solid #fecaca",paddingBottom:"4px"}}>✖ Exclusions</div>
+                    <div style={{fontSize:"12px",color:"#374151",display:"flex",flexDirection:"column",gap:"5px"}}>
+                      {["Airfare to and from Port Blair.","The services of vehicles are not included on leisure days & after finishing the sightseeing tour as per the itinerary.","Any kind of personal expenses or optional tours or extra meals ordered.","Any kind of drinks or snacks on tour.","Extra cost due to flight cancellation, ill health, or factors beyond control.","Any Water Sports Activities not mentioned in inclusions.","Peak Season Surcharges (15th Dec to 20th Jan).","5% GST.","Anything not mentioned in the Package Inclusions."].map((exc,i)=>(
+                        <div key={i} style={{display:"flex",gap:"8px",alignItems:"flex-start"}}>
+                          <span style={{color:"#dc2626",fontWeight:"700",flexShrink:0}}>✖</span>
+                          <span>{exc}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* FOOTER */}
+                  <div style={{borderTop:"2px solid #e2e8f0",paddingTop:"14px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                    <div style={{fontSize:"11px",color:"#9ca3af"}}>
+                      <div style={{fontWeight:"600",color:"#6b7280",marginBottom:"4px"}}>Terms & Conditions</div>
+                      {["This quotation is valid for 7 days from the date of issue.","Prices are subject to availability at the time of booking.","50% advance required to confirm the booking.","Balance amount 5 days before check-in.","Peak season (15 Dec – 15 Jan): NIL refund."].map((t,i)=>(
+                        <div key={i}>• {t}</div>
+                      ))}
+                    </div>
+                    <div style={{textAlign:"center"}}>
+                      <div style={{fontSize:"11px",color:"#9ca3af",marginBottom:"24px"}}>Authorised Signature</div>
+                      <div style={{borderTop:"1px solid #d1d5db",paddingTop:"4px",fontSize:"11px",color:"#6b7280",width:"140px"}}>Andaman Tour Infinity</div>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 // Quotation View Modal Component
 function QuotationViewModal({ quotationId, token, onClose, onConvertToBooking }) {
@@ -75,92 +387,13 @@ function QuotationViewModal({ quotationId, token, onClose, onConvertToBooking })
 
   if (!quotation) return null;
 
-  return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="quotation-builder" onClick={(e) => e.stopPropagation()}>
-        <div className="quotation-header">
-          <div>
-            <h2>📋 Quotation Preview</h2>
-            <div className="quotation-meta">
-              <span className="quotation-ref">{quotation.quotationRef}</span>
-              <span className="quotation-customer">{quotation.customerName}</span>
-              <span className="quotation-status">{quotation.status}</span>
-            </div>
-          </div>
-          <button className="btn-close" onClick={onClose}>×</button>
-        </div>
-
-        <div className="quotation-body">
-          <div className="preview-tab">
-            <div className="quotation-preview">
-              <div className="preview-header">
-                <h3>Quotation Details</h3>
-                <div className="preview-actions">
-                  <button className="btn-secondary">📄 Download PDF</button>
-                  {quotation.status === "Sent" && (
-                    <button className="btn-primary" onClick={convertToBooking} style={{background: "var(--success)"}}>
-                      ✅ Convert to Booking
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              <div className="preview-content">
-                <div className="preview-customer">
-                  <h4>{quotation.customerName}</h4>
-                  <p>{quotation.email} | {quotation.phone}</p>
-                  <p>{quotation.destination} | {quotation.duration}</p>
-                  <p>{quotation.groupSize.adults} Adults, {quotation.groupSize.children} Children</p>
-                </div>
-
-                <div className="preview-items">
-                  <h4>Trip Itinerary ({quotation.items.length} items)</h4>
-                  {quotation.items.map((item, index) => (
-                    <div key={item._id} className="preview-item">
-                      <div className="preview-item-header">
-                        <span className="preview-day">Day {index + 1}</span>
-                        <span className="preview-type">{item.type}</span>
-                      </div>
-                      <h5>{item.name}</h5>
-                      <p>{item.description}</p>
-                      <div className="preview-price">₹{item.subtotal.toLocaleString()}</div>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="preview-pricing">
-                  <div className="preview-pricing-row">
-                    <span>Package Cost:</span>
-                    <span>₹{quotation.pricing.subtotal.toLocaleString()}</span>
-                  </div>
-                  {quotation.pricing.agentMarkupPercent > 0 && (
-                    <div className="preview-pricing-row">
-                      <span>Service Charges ({quotation.pricing.agentMarkupPercent}%):</span>
-                      <span>₹{(quotation.pricing.subtotal * quotation.pricing.agentMarkupPercent / 100).toLocaleString()}</span>
-                    </div>
-                  )}
-                  {quotation.pricing.discountPercent > 0 && (
-                    <div className="preview-pricing-row discount">
-                      <span>Discount ({quotation.pricing.discountPercent}%):</span>
-                      <span>-₹{(quotation.pricing.subtotal * quotation.pricing.discountPercent / 100).toLocaleString()}</span>
-                    </div>
-                  )}
-                  <div className="preview-pricing-row">
-                    <span>GST ({quotation.pricing.taxPercent}%):</span>
-                    <span>₹{quotation.pricing.taxes.toLocaleString()}</span>
-                  </div>
-                  <div className="preview-pricing-total">
-                    <span>Total Amount:</span>
-                    <span>₹{quotation.pricing.total.toLocaleString()}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+  return <QuotationPDFModal quotation={quotation} onClose={onClose} extraActions={
+    quotation.status === "Sent" && (
+      <button className="btn-primary" onClick={convertToBooking} style={{background:"var(--success)"}}>
+        ✅ Convert to Booking
+      </button>
+    )
+  } />;
 }
 
 export default function QuotationsPage({ token, onNavigate, onRefresh }) {

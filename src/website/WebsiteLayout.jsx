@@ -10,8 +10,8 @@ function Navbar() {
   return (
     <nav className="ws-nav">
       <Link to="/" className="ws-nav-brand">
-        <img src="/assests/logo.png" alt="Andaman Tour Infinity" className="ws-nav-logo" />
-        <span>Andaman Tour Infinity</span>
+        <img src="/assests/logo.png" alt="Andaman Destinations" className="ws-nav-logo" />
+        <span>Andaman Destinations</span>
       </Link>
 
       <div className={`ws-nav-links ${menuOpen ? "ws-nav-open" : ""}`}>
@@ -42,7 +42,7 @@ export default function WebsiteLayout() {
           <Outlet />
         </main>
         <footer className="ws-footer">
-          © {new Date().getFullYear()} Andaman Tour Infinity. All rights reserved.
+          © {new Date().getFullYear()} Andaman Destinations. All rights reserved.
           &nbsp;|&nbsp; <Link to="/admin">Admin</Link>
         </footer>
       </div>
