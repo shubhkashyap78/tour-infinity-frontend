@@ -8,6 +8,7 @@ import UsersPage from "./pages/UsersPage";
 import EnquiriesPage from "./pages/EnquiriesPage";
 import LeadsPage from "./pages/LeadsPage";
 import QuotationsPage from "./pages/QuotationsPage";
+import InclusionsPage from "./pages/InclusionsPage";
 import DraftQuotationsPage from "./pages/DraftQuotationsPage";
 
 const NAV_ITEMS = [
@@ -20,8 +21,9 @@ const NAV_ITEMS = [
   { key: "hotel",       label: "Hotels",      icon: "🏨" },
   { key: "tour",        label: "Tours",       icon: "🗺️" },
   { key: "package",     label: "Packages",    icon: "📦" },
-  { key: "vehicle",     label: "Vehicles",    icon: "🚗" },
+  { key: "vehicle",     label: "Transport & Activities", icon: "🚌" },
   { key: "subscribers", label: "Newsletter",  icon: "📧" },
+  { key: "inclusions",  label: "Inclusions & Exclusions", icon: "📋" },
   { key: "users",       label: "Team",        icon: "👥" },
 ];
 
@@ -177,6 +179,10 @@ export default function Dashboard({ token, onLogout }) {
 
           {active === "leads" && (
             <LeadsPage token={token} />
+          )}
+
+          {active === "inclusions" && (
+            <InclusionsPage token={token} />
           )}
 
           {active === "enquiries" && (

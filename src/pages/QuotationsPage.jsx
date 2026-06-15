@@ -71,32 +71,19 @@ function QuotationPDFModal({ quotation, onClose, extraActions }) {
 
               <div ref={previewRef} style={{background:"#fff",fontFamily:"Arial, sans-serif",color:"#1a1a1a",fontSize:"13px",lineHeight:"1.6",position:"relative"}}>
                 <div style={{position:"absolute",top:0,left:0,right:0,bottom:0,overflow:"hidden",pointerEvents:"none",zIndex:0,opacity:0.05,fontSize:"10px",color:"#1d4ed8",wordBreak:"break-all",padding:"8px",lineHeight:"2"}}>
-                  {Array(60).fill(`Andaman Tour Infinity • ${q.quotationRef} • `).join("")}
+                  {Array(60).fill(`Andaman Destinations • ${q.quotationRef} • `).join("")}
                 </div>
                 <div style={{position:"relative",zIndex:1,padding:"28px"}}>
 
                   {/* HEADER */}
-                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"6px"}}>
-                    <div style={{display:"flex",alignItems:"center",gap:"12px"}}>
-                      <img src="/assests/logo.png" alt="logo" style={{height:"60px",objectFit:"contain"}} />
-                      <div>
-                        <div style={{fontSize:"20px",fontWeight:"800",color:"#1d4ed8"}}>Andaman Tour Infinity</div>
-                        <div style={{fontSize:"11px",color:"#6b7280"}}>Your Trusted Andaman Travel Partner</div>
-                      </div>
-                    </div>
-                    <div style={{textAlign:"right",fontSize:"11px",color:"#4b5563",lineHeight:"1.9"}}>
-                      <div>📍 Dollygunj, Port Blair, Andaman – 744103</div>
-                      <div>📞 +91 94760 44578</div>
-                      <div>✉️ booking@andamantourinfinity.com</div>
-                      <div>🌐 www.andamantourinfinity.com</div>
-                    </div>
+                  <div style={{marginBottom:"16px"}}>
+                    <img src="/assests/header_on_pdf.png" alt="header" style={{width:"100%",display:"block",objectFit:"contain"}} />
                   </div>
-                  <div style={{height:"3px",background:"linear-gradient(90deg,#1d4ed8,#60a5fa)",borderRadius:"2px",marginBottom:"16px"}} />
 
                   {/* GREETING */}
                   <div style={{background:"#eff6ff",border:"1px solid #bfdbfe",borderRadius:"8px",padding:"12px 16px",marginBottom:"16px",fontSize:"12px"}}>
                     <div style={{fontWeight:"700",marginBottom:"4px"}}>Dear {q.customerName},</div>
-                    <div>Greetings from Andaman Tour Infinity. Our sales team has put up this Quote regarding your upcoming trip. Please go through it and let us know if you would like any changes.</div>
+                    <div>Greetings from Andaman Destinations. Our sales team has put up this Quote regarding your upcoming trip. Please go through it and let us know if you would like any changes. Contact details are provided at the end.</div>
                   </div>
 
                   {/* CUSTOMER DETAILS */}
@@ -117,7 +104,7 @@ function QuotationPDFModal({ quotation, onClose, extraActions }) {
                     <div style={{background:"#1d4ed8",color:"#fff",padding:"8px 16px",display:"flex",justifyContent:"space-between",fontWeight:"700",fontSize:"13px"}}>
                       <span>Quote Price</span><span>Trip ID: {q.quotationRef}</span>
                     </div>
-                    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr"}}>
+                    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",borderTop:"none"}}>
                       {[
                         {l:"DESTINATION",v:q.destination||"—"},
                         {l:"START DATE",v:q.travelDates?.startDate?new Date(q.travelDates.startDate).toLocaleDateString("en-IN",{day:"numeric",month:"long",year:"numeric"}):"—"},
@@ -200,7 +187,6 @@ function QuotationPDFModal({ quotation, onClose, extraActions }) {
                             <tr key={item._id} style={{background:i%2===0?"#f8fafc":"#fff",borderBottom:"1px solid #e2e8f0"}}>
                               <td style={{padding:"8px 10px",color:"#6b7280",fontWeight:"600"}}>{i+1}</td>
                               <td style={{padding:"8px 10px"}}>
-                                {item.image&&<img src={item.image} alt={item.name} style={{width:"100%",maxWidth:"160px",height:"auto",objectFit:"contain",borderRadius:"6px",marginBottom:"6px",display:"block"}} />}
                                 <div style={{fontWeight:"600",color:"#111827"}}>{item.name}</div>
                                 {item.description&&<div style={{color:"#6b7280",fontSize:"11px"}}>{item.description}</div>}
                               </td>
@@ -231,7 +217,6 @@ function QuotationPDFModal({ quotation, onClose, extraActions }) {
                             <tr key={item._id} style={{background:i%2===0?"#f8fafc":"#fff",borderBottom:"1px solid #e2e8f0"}}>
                               <td style={{padding:"8px 10px",color:"#6b7280",fontWeight:"600"}}>{i+1}</td>
                               <td style={{padding:"8px 10px"}}>
-                                {item.image&&<img src={item.image} alt={item.name} style={{width:"100%",maxWidth:"160px",height:"auto",objectFit:"contain",borderRadius:"6px",marginBottom:"6px",display:"block"}} />}
                                 <div style={{fontWeight:"600",color:"#111827"}}>{item.name}</div>
                                 {item.description&&<div style={{color:"#6b7280",fontSize:"11px"}}>{item.description}</div>}
                               </td>
@@ -276,7 +261,7 @@ function QuotationPDFModal({ quotation, onClose, extraActions }) {
 
                   {/* INCLUSIONS */}
                   <div style={{marginBottom:"20px"}}>
-                    <div style={{fontSize:"12px",fontWeight:"700",color:"#1d4ed8",textTransform:"uppercase",letterSpacing:"1px",marginBottom:"8px",borderBottom:"2px solid #bfdbfe",paddingBottom:"4px"}}>✅ Inclusions</div>
+                    <div style={{fontSize:"12px",fontWeight:"700",color:"#1d4ed8",textTransform:"uppercase",letterSpacing:"1px",marginBottom:"8px",borderBottom:"2px solid #bfdbfe",paddingBottom:"4px"}}>✔ Inclusions</div>
                     <div style={{fontSize:"12px",color:"#374151",display:"flex",flexDirection:"column",gap:"5px"}}>
                       {["Accommodation as specified above.","All Accommodations - (Deluxe Hotels / Resorts)","Note: Check-in and check-out times at hotels would be as per hotel policies.","All entry tickets (as mentioned in the quotation)","All Sightseeing and Transfers by AC Personal Cab","Port Blair Airport Pick-up and Drop","Meals MAP (Daily Breakfast - Dinner)","All the boats and cruise are on sharing basis","All entry, Monuments, Parking and Permits charges as per itinerary.","Elephanta Boat Tickets Sharing Basis (Complementary Snorkeling 4 to 6 mins)","3-way Private Cruise charges","24 hours on-call assistance during your stay.","The Vehicle Will be used strictly as per your tour itinerary","Extra Fuel Surcharges will be applicable in this Package."].map((inc,i)=>(
                         <div key={i} style={{display:"flex",gap:"8px",alignItems:"flex-start"}}>
@@ -291,10 +276,49 @@ function QuotationPDFModal({ quotation, onClose, extraActions }) {
                   <div style={{marginBottom:"20px"}}>
                     <div style={{fontSize:"12px",fontWeight:"700",color:"#ef4444",textTransform:"uppercase",letterSpacing:"1px",marginBottom:"8px",borderBottom:"2px solid #fecaca",paddingBottom:"4px"}}>✖ Exclusions</div>
                     <div style={{fontSize:"12px",color:"#374151",display:"flex",flexDirection:"column",gap:"5px"}}>
-                      {["Airfare to and from Port Blair.","The services of vehicles are not included on leisure days & after finishing the sightseeing tour as per the itinerary.","Any kind of personal expenses or optional tours or extra meals ordered.","Any kind of drinks or snacks on tour.","Extra cost due to flight cancellation, ill health, or factors beyond control.","Any Water Sports Activities not mentioned in inclusions.","Peak Season Surcharges (15th Dec to 20th Jan).","5% GST.","Anything not mentioned in the Package Inclusions."].map((exc,i)=>(
+                      {["Airfare to and from Port Blair.","The services of vehicles are not included on leisure days & after finishing the sightseeing tour as per the itinerary.","Any kind of personal expenses or optional tours or extra meals / beverages ordered at hotel.","Any kind of drinks (Alcohol, Mineral, Aerated, Bed Tea) or any other snack on tour or while waiting at airport or waiting for ferry at jetty.","Extra cost incidental to any change in the itinerary / stay on account of flight cancellation, ill health, and/or any factors beyond control.","Extra usage of vehicle for Evening Dinner / Shopping / Etc. is payable as extra. Vehicle will only be provided for tours as mentioned above.","Any Water Sports Activities / Adventurous Activity that is not mentioned in the Package Inclusions List.","Peak Season Surcharges of Hotels / Resorts (Applicable from 15th December to 20th January).","Additional Supplement Charge for Christmas Eve (24th December) and New Year Eve (31st December) at Hotels / Resorts.","Anything that is not mentioned in the Package Inclusions.","Ross & Smith Island Boat Tickets – Diglipur Party Own Payment.","5% GST.","Personal Expenses Like Lunch at Hotels, Room Service, Telephone Calls, Laundry, Any Portage at Airports and Hotels, Tips, Insurance, Wine, Mineral Water, Telephone Charges, Camera Tickets at Various Sightseeing/Tour, Guide Charges, Boating Charges and all other personal expenses.","Honeymoon Kit (Candle Light Dinner, Beach & Pool Side Setup, Flower Bed, Honeymoon Cake) at Havelock Island – Per Couple: Rs. 9,999/-.","Candle Light Dinner at Beach or Pool Side at Havelock Island – Per Couple: Rs. 5,500/-.","For disposal vehicles, an additional charge will apply for usage.","Anything not mentioned in the inclusions is excluded."].map((exc,i)=>(
                         <div key={i} style={{display:"flex",gap:"8px",alignItems:"flex-start"}}>
                           <span style={{color:"#dc2626",fontWeight:"700",flexShrink:0}}>✖</span>
                           <span>{exc}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* WATER SPORTS - PORT BLAIR */}
+                  <div style={{marginBottom:"20px"}}>
+                    <div style={{fontSize:"12px",fontWeight:"700",color:"#1d4ed8",textTransform:"uppercase",letterSpacing:"1px",marginBottom:"8px",borderBottom:"2px solid #bfdbfe",paddingBottom:"4px"}}>Top List of Water Sports in Andaman Islands (Best Places & Prices)</div>
+                    <div style={{fontSize:"12px",color:"#374151",display:"flex",flexDirection:"column",gap:"5px"}}>
+                      {["Port Blair Water Activities","1. Shore Diving – Rs. 3,500/-","2. Sea Walk – Rs. 3,500/-","3. Parasailing – Rs. 3,500/-","4. Snorkeling – Rs. 1,000/-","5. Glass Bottom Boat Ride – Rs. 1,200/-","6. Coral Trip by Semi Submarine – Rs. 3,000/-","7. Dolphin Glass Boat Ride – Rs. 3,000/-","8. Kayaking (Half Hour) – Rs. 1,000/-","9. Kayaking (45 Minutes) – Rs. 1,500/-","10. Jet Ski Ride (1 Km) – Rs. 600/-","11. Jet Ski Ride (2 Km) – Rs. 1,000/-","12. Jet Ski Ride (3 Km) – Rs. 1,500/-"].map((item,i)=>(
+                        <div key={i} style={{display:"flex",gap:"8px",alignItems:"flex-start"}}>
+                          <span style={{color:"#1d4ed8",fontWeight:"700",flexShrink:0}}>{i===0?"•":"–"}</span>
+                          <span>{item}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* WATER SPORTS - HAVELOCK */}
+                  <div style={{marginBottom:"20px"}}>
+                    <div style={{fontSize:"12px",fontWeight:"700",color:"#1d4ed8",textTransform:"uppercase",letterSpacing:"1px",marginBottom:"8px",borderBottom:"2px solid #bfdbfe",paddingBottom:"4px"}}>Havelock Water Activities</div>
+                    <div style={{fontSize:"12px",color:"#374151",display:"flex",flexDirection:"column",gap:"5px"}}>
+                      {["1. Scuba Diving – Photo (20 Clicks) + 1 Video – Rs. 3,500/-","2. Boat Scuba Diving – Photo (20 Clicks) + 1 Video – Rs. 5,500/-","3. Sea Walk – With Photo (10 Clicks) + 1 Video – Rs. 3,800/-","4. Dolphin Glass Boat Ride (Half Hour Ride) – Rs. 3,500/-","5. Submarine Boat Ride (Half Hour Ride) – Rs. 3,500/-","6. Banana Ride – Rs. 600/-","7. Snorkeling – Rs. 1,600/-","8. Bioluminescence Night Kayaking – Rs. 3,500/-"].map((item,i)=>(
+                        <div key={i} style={{display:"flex",gap:"8px",alignItems:"flex-start"}}>
+                          <span style={{color:"#1d4ed8",fontWeight:"700",flexShrink:0}}>–</span>
+                          <span>{item}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* WATER SPORTS - NEIL ISLAND */}
+                  <div style={{marginBottom:"20px"}}>
+                    <div style={{fontSize:"12px",fontWeight:"700",color:"#1d4ed8",textTransform:"uppercase",letterSpacing:"1px",marginBottom:"8px",borderBottom:"2px solid #bfdbfe",paddingBottom:"4px"}}>Neil Island Water Activities</div>
+                    <div style={{fontSize:"12px",color:"#374151",display:"flex",flexDirection:"column",gap:"5px"}}>
+                      {["- Boat Scuba Diving – Photo (20 Clicks) + 1 Video – Rs. 4,500/-","- Snorkeling by Boat – Rs. 1,600/-","- Glass Boat Ride at Bharatpur Beach (30 Minutes) – Rs. 800/-","- Sofa Ride at Bharatpur Beach – Rs. 600/-","- Jet Ski Ride at Bharatpur Beach – Rs. 600/-"].map((item,i)=>(
+                        <div key={i} style={{display:"flex",gap:"8px",alignItems:"flex-start"}}>
+                          <span style={{color:"#1d4ed8",fontWeight:"700",flexShrink:0}}>–</span>
+                          <span>{item}</span>
                         </div>
                       ))}
                     </div>
@@ -304,13 +328,13 @@ function QuotationPDFModal({ quotation, onClose, extraActions }) {
                   <div style={{borderTop:"2px solid #e2e8f0",paddingTop:"14px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
                     <div style={{fontSize:"11px",color:"#9ca3af"}}>
                       <div style={{fontWeight:"600",color:"#6b7280",marginBottom:"4px"}}>Terms & Conditions</div>
-                      {["This quotation is valid for 7 days from the date of issue.","Prices are subject to availability at the time of booking.","50% advance required to confirm the booking.","Balance amount 5 days before check-in.","Peak season (15 Dec – 15 Jan): NIL refund."].map((t,i)=>(
-                        <div key={i}>• {t}</div>
+                      {["The above mentioned hotels will be confirmed as per the room availability. Otherwise we will confirm a similar category hotel & itinerary might be re-arranged as per hotel availability at the time of booking.","Extra Person Cost: Children below 5 years are complimentary (this may differ for different hotels) in parent room without extra bed. Milk/food for infant or children below 5 years is chargeable and directly payable at hotel.","Children between 6-10 years & adults (above 10 yrs.) would cost extra according to the company policies.","In case false information like fake age is conveyed to the company by the customers, the company possesses full right to extract the fair amount from the customers without any objection from external authorities.","Hotels are very strict with the child policy. Please carry age proof so that it can be produced when asked.","Payment & Cancellation Policy: Cancellation has to be sent to us by email only.","From date of booking to 30 days only communication charges of Rs. 2000 per person or 5% of total amount + 18% GST, whichever is lower.","30-15 days prior to departure: 35% of tour cost.","14-07 days prior to departure: 50% of tour cost.","07-03 days prior to departure: 75% of tour cost.","03 days/no show: 100% of tour cost.","Payment Policy: 50% of the package amount at the time of booking. Balance amount 5 days before check-in.","Any booking for peak season (15 Dec to 15 Jan): NIL refund.","In case of unexpected bad weather condition or due to cancellation of ferry/helicopter/seaplane to Havelock or any other island, an equivalent hotel will be provided at Port Blair with additional cost. No refund will be made for unused room night.","The management may change / alter the tour plan due to natural calamity or political disturbances; no claim on such change or alteration will be entertained.","Above are the cancellation rules but we will put our best possible effort to minimize the cancellation charges.","In high season, no refund will be applicable within 30 days of the tour start date. (Normal cancellation policy will not be applicable on those dates.)"].map((item,i)=>(
+                        <div key={i}>• {item}</div>
                       ))}
                     </div>
                     <div style={{textAlign:"center"}}>
                       <div style={{fontSize:"11px",color:"#9ca3af",marginBottom:"24px"}}>Authorised Signature</div>
-                      <div style={{borderTop:"1px solid #d1d5db",paddingTop:"4px",fontSize:"11px",color:"#6b7280",width:"140px"}}>Andaman Tour Infinity</div>
+                      <div style={{borderTop:"1px solid #d1d5db",paddingTop:"4px",fontSize:"11px",color:"#6b7280",width:"140px"}}>Andaman Destinations</div>
                     </div>
                   </div>
 
